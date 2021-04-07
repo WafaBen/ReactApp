@@ -3,10 +3,11 @@ import { Card , CardImg, CardImgOverlay, CardText, CardTitle, CardBody,
          Breadcrumb, BreadcrumbItem, Button, Modal, ModalBody, ModalHeader, Row, Col, Label } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors} from 'react-redux-form';
+import { Loading } from './LoadingComponent';
 
 
 
-    function RenderComments({comments})
+    function RenderComments({comments, addComment, dishId})
     {
         if(comments != null){
             const listComments=comments.map((comment) =>
@@ -17,7 +18,6 @@ import { Control, LocalForm, Errors} from 'react-redux-form';
                     <p>{comment.author},{new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit'}).format(new Date(Date.parse(comment.date)))}</p>
                 </li>
                 );
-                
             });
             return(
                 <div className="container">
@@ -26,10 +26,9 @@ import { Control, LocalForm, Errors} from 'react-redux-form';
                         {listComments}
                     </ul>
                     <div className="row">
-                        <CommentForm />
+                        <CommentForm dishId={dishId} addComment={addComment} />
                     </div>
                 </div>
-                
             );
         }
         else{
@@ -39,12 +38,31 @@ import { Control, LocalForm, Errors} from 'react-redux-form';
                 </div>
             );
         }
-        
     }
     const DetailedDish=(props) =>
     {
         const dish=props.dish;
-         if(dish != null){
+        if(props.isLoading){
+            return(
+                <div className="container">
+                    <div className="row">
+                        <Loading />
+                    </div>
+                </div>
+
+            );
+        }
+        else if(props.errMess){
+            return(
+                <div className="container">
+                    <div className="row">
+                        <h4>{props.errMess}</h4>
+                    </div>
+                </div>
+
+            );
+        }
+        else if(dish != null){
             return(
                 <div key={dish.id} className="container" >
                     <div className="row">
@@ -70,7 +88,9 @@ import { Control, LocalForm, Errors} from 'react-redux-form';
                     </div>
                     
                     <div className="col-12 col-md-5 mt-5 ">
-                        <RenderComments comments={props.comments} />
+                        <RenderComments comments={props.comments}
+                            addComment={props.addComment} 
+                            dishId={dish.id}/>
                     </div>
                 </div>    
                 </div>
@@ -105,8 +125,8 @@ class CommentForm extends Component {
         });
     }
     handleSubmit(values){
-        console.log("current state :"+ JSON.stringify(values));
-        alert("current state :"+ JSON.stringify(values));
+        this.toggleModal();
+        this.props.addComment(this.props.dishId,values.rating, values.name, values.message);
     }
 
     render(){
